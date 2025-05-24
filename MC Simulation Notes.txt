@@ -1,0 +1,202 @@
+MC Simulation Notes
+Prof Gennady Gor - Santiago - Omer
+
+Pseudo code
+
+1 ) set up a particle in a box (grid)
+
+1.1) compute total energy of the system  using a simple potential
+(eg Lennard-Jones)
+**************LEARN**********
+
+2) Start the Monte Carlo Loop 
+this is how you start the loop
+a- choose a random particle from the list
+formula and code?? 
+
+b-propose a random move like displace the particle randomly
+like in xyz within small range — gas theory 
+
+c-compute energy change- measure how the system’s
+energy changes if you accept this move. ????
+
+d-apply the metropolis criterion 
+if energy ??decreases -> always accept
+if energy increases -> accept with probability ??
+
+e-update or reject 
+accept: keep new pos. and update energy.
+reject: go back to old pos.
+
+f-record data 
+at each step, record energy, configuration, etc. 
+for final averaging!!!
+
+
+There are some important variables in this code:
+position[i] -> current position of particle i 
+random_displacement -> small random vector (x, y, z)
+E -> Current total energy of system
+delta_E -> Energy difference between new and old configuration
+T -> Temperature (in Kelvin)
+k_B -> Boltzmann constant
+
+———
+1-basically MC simulates configurations, not real time motion
+2- it samples system states based on probabilities(like rolling weighted dice)
+3- over time, it reproduces the Boltzmann distribution - more likely
+states get visited more often.
+
+basically : you gotta let them move randomly
+accept/reject moves based on energy 
+measure the average total energy over time
+
+——————VERY SIMPLE EXAMPLE ————
+
+imagine there is particle in a box be careful everything
+is 1D
+x = 0 to x = L , each particle has a RANDOM position.
+
+—ENERGY MODELS
+there are various energy model, we assume each particle
+wants to be near of the box. The further away it is 
+the more energy it has. 
+Let’s define energy:
+Ei =k(xi −L/2)**2
+E-i   Energy at i-th state E-i
+x-i   position of a particle i
+L/2 is the center of the box
+k stiffness constant(1 for simplicity)
+
+——MONTE CARLO RULE METROPOLIS ALGO—
+If a move reduces energy, accept it 
+If a move increases energy, accept it with probability
+
+P accept = exp(−ΔE / kB T )
+
+this let’s the system explore and not get stuck in one state.
+
+—UNITS and CONSTANTS—
+let’s keep it simple 
+k B = 1 , T = 1 , k = 1 , L = 1(box from 0 to 1)
+
+——Step-by-Step Algorithm——
+1) Initialize N particles at random positions in th 1D box.
+
+2) For each Monte Carlo step: 
+
+a. Pick a random particle i
+b. Save its current position x_old
+c. Propose a new position x_new = x_old + random small shift
+d. If x_new is outside [0, L], reject immediately
+e. Compute energy difference: 
+	E_old   = ( x_ old - 0.5) ^ 2
+	E_new = ( x_new - 0.5)
+	delta_E = E_new - E_old
+f. Apply Metropolis Criterion:
+	- delta_E <= 0, accept the move
+	- Else, accept with probability exp(-delta_E / T ) 
+g. If accepted: update particle’s position 
+	Else: revert to x_old
+3. After many steps, average the energy across time
+4. Output average energy and final positions 
+
+What This Tells Us
+After enough steps:
+the system reaches thermal equilibrium 
+particles are mostly near the center ( low energy) but can
+occasionally wander. 
+We can compute: 
+Average total energy 
+Distribution of particle positions
+
+
+Simple Example Walkthrough
+Let’s say we have 1 particle at x=0.6
+	•	Old energy:   E=(0.6−0.5)2=0.01
+	•	Propose move to  x=0.4
+	•	New energy:  E=(0.4−0.5)2=0.01
+	•	ΔE = 0 → Accept
+Now suppose we try:
+	•	xold=0.6
+	•	xnew=0.8
+	•	ΔE = (0.8−0.5)2−(0.6−0.5)2=0.09−0.01=0.08
+Then:
+	•	Accept with probability exp xp(−0.08)≈0.923
+	•	So generate a random number in [0, 1). If < 0.923 → accept!
+
+ Final Takeaways
+	•	Monte Carlo simulates particle behavior based on probabilistic physics.
+	•	You don't solve equations — you sample configurations.
+	•	The result converges to the Boltzmann distribution.
+	•	Even this basic example teaches how disorder and energy balance each other.
+
+
+ Purpose of the Algorithm
+To simulate a many-particle system in thermal equilibrium, and measure equilibrium properties (like energy, pressure, or structure) using random sampling.
+This is done using the Metropolis Monte Carlo method, which builds a random walk through configuration space, biased so that low-energy states are visited more often, just like real thermal systems.
+
+Step 1: Pick a Particle Randomly
+Select a particle at random, and calculate its energy  U(rN) rN: Position of all N particles
+You choose one particle to try and move.
+You then calculate the current total energy (or just the energy involving that particle — more efficient).
+
+ Step 2: Propose a Random Move
+"Give the particle a random displacement, r′=r+Δ"
+	•	You propose a move by nudging the particle a small amount in a random direction.
+	•	This is a trial move, not final yet.
+
+
+Step 3: Compute New Energy
+Calculate the new energy U(r′N)"
+	•	You compute what the energy would be if we accepted the move.
+	•	Energy could:
+	◦	Decrease (which is good — more stable)
+	◦	Increase (which is allowed, but less likely)
+
+Step 4: Accept or Reject Move (Metropolis Criterion)
+acc(o→n)=min(1, exp ( −β [U(r′N)−U(rN)] ) )
+
+This is the heart of the algorithm.
+Terms: o: old state (before move) n: new state (after move)
+β=kB / T
+ΔU=U new −U old 
+ Interpretation:
+If the energy decreases → ΔU<0 → exponent is positive → always accept
+If the energy increases → ΔU>0 → accept with probability:
+P accept =exp(−ΔU / kB T )
+
+
+The Big Picture
+This algorithm:
+Builds a biased random walk in particle configuration space.
+Biases the walk toward lower-energy configurations, mimicking thermal physics.
+After many steps, the distribution of visited configurations follows the Boltzmann distribution:
+P(rN) ∝ exp(−U(rN) /  kB T  )
+
+Algorithms 1 and 2 (Not shown here)
+In the book, these are basic pseudocode implementations of this Metropolis MC loop:
+Algorithm 1: For a system in the canonical ensemble (fixed N, V, T)
+Algorithm 2: With periodic boundary conditions, better for bulk simulations
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
